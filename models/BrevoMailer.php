@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Osmium\Services\Brevo\Models;
 
-use Osmium\Core\Library\MailerInterface;
+use Osmium\Core\Library\PlainTextMailer;
 
 /**
  * Sends mail via Brevo's transactional email API (JSON POST with an api-key
@@ -15,7 +15,7 @@ use Osmium\Core\Library\MailerInterface;
  * Brevo only sends from a verified sender, so the From address on the Email
  * settings page must be one.
  */
-class BrevoMailer implements MailerInterface
+class BrevoMailer implements PlainTextMailer
 {
     private const SEND_URL = 'https://api.brevo.com/v3/smtp/email';
 
@@ -25,10 +25,15 @@ class BrevoMailer implements MailerInterface
      * @param array<int, array{email: string, name?: string}> $recipients
      * @return array{success: bool, error?: string}
      */
-    public function send(array $recipients, string $subject, string $htmlBody): array
+    public function send(array $recipients, string $subject, string $htmlBody, ?string $textBody = null): array
     {
         try {
-            $this->postMessage($recipients, $subject, $htmlBody);
+            $this->postMessage(
+                recipients: $recipients,
+                subject: $subject,
+                htmlBody: $htmlBody,
+                textBody: $textBody,
+            );
             return ['success' => true];
         } catch (\Exception $e) {
             return ['success' => false, 'error' => $e->getMessage()];
@@ -38,7 +43,7 @@ class BrevoMailer implements MailerInterface
     /**
      * @param array<int, array{email: string, name?: string}> $recipients
      */
-    private function postMessage(array $recipients, string $subject, string $htmlBody): void
+    private function postMessage(array $recipients, string $subject, string $htmlBody, ?string $textBody): void
     {
         $notReady = !BrevoConfig::isReady();
         if ($notReady) throw new \RuntimeException('Brevo is not configured: set the API key on the Brevo settings page.');
@@ -57,15 +62,20 @@ class BrevoMailer implements MailerInterface
             $recipients,
         );
 
+        $message = [
+            'sender' => $sender,
+            'to' => $to,
+            'subject' => $subject,
+            'htmlContent' => $htmlBody,
+        ];
+        $hasText = $textBody !== null;
+        if ($hasText) $message['textContent'] = $textBody;
+        $payload = \json_encode($message);
+
         $ch = \curl_init(self::SEND_URL);
         \curl_setopt_array($ch, [
             CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => \json_encode([
-                'sender' => $sender,
-                'to' => $to,
-                'subject' => $subject,
-                'htmlContent' => $htmlBody,
-            ]),
+            CURLOPT_POSTFIELDS => $payload,
             CURLOPT_HTTPHEADER => [
                 'api-key: ' . BrevoConfig::get()->apiKey,
                 'Content-Type: application/json',
