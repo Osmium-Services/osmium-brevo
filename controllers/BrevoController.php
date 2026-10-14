@@ -42,7 +42,12 @@ class BrevoController extends AdminController
         $postedApiKey = \trim($_POST['api_key'] ?? '');
         $apiKey = $postedApiKey === '' ? (string) (BrevoConfig::get()->apiKey ?? '') : $postedApiKey; // Blank keeps the stored secret
 
-        $this->saveConfig($apiKey);
+        $newsletterEnabled = !empty($_POST['newsletter_enabled']);
+        $listId = \max(0, (int) ($_POST['list_id'] ?? 0));
+        $doiTemplateId = \max(0, (int) ($_POST['doi_template_id'] ?? 0));
+        $doiRedirectUrl = \trim((string) ($_POST['doi_redirect_url'] ?? ''));
+
+        $this->saveConfig(apiKey: $apiKey, newsletterEnabled: $newsletterEnabled, listId: $listId, doiTemplateId: $doiTemplateId, doiRedirectUrl: $doiRedirectUrl);
 
         $this->admin->model->changelog->log(
             description: 'Updated Brevo settings',
@@ -55,13 +60,13 @@ class BrevoController extends AdminController
         $this->redirect('settings/brevo/');
     }
 
-    private function saveConfig(string $apiKey): void
+    private function saveConfig(string $apiKey, bool $newsletterEnabled, int $listId, int $doiTemplateId, string $doiRedirectUrl): void
     {
         $configExists = \file_exists(self::CONFIG_FILE_PATH);
         if (!$configExists) $this->ensureConfigDirectoryExists();
 
         $newJson = \json_encode(
-            value: ['brevo' => ['apiKey' => $apiKey]],
+            value: ['brevo' => ['apiKey' => $apiKey, 'newsletterEnabled' => $newsletterEnabled, 'listId' => $listId, 'doiTemplateId' => $doiTemplateId, 'doiRedirectUrl' => $doiRedirectUrl]],
             flags: JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
         );
 

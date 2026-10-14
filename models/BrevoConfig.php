@@ -60,10 +60,38 @@ class BrevoConfig
         return (self::get()->apiKey ?? '') !== '';
     }
 
+    /**
+     * Can newsletter signups be taken right now - switched on, with an API key and a list to add them to.
+     */
+    public static function isNewsletterReady(): bool
+    {
+        $config = self::get();
+        $hasKey = ($config->apiKey ?? '') !== '';
+        $hasList = (int) ($config->listId ?? 0) > 0;
+
+        return !empty($config->newsletterEnabled) && $hasKey && $hasList;
+    }
+
+    /**
+     * Should signups be confirmed by email first - a confirmation template and a page to land on are both set.
+     */
+    public static function isDoubleOptIn(): bool
+    {
+        $config = self::get();
+        $hasTemplate = (int) ($config->doiTemplateId ?? 0) > 0;
+        $hasRedirect = (string) ($config->doiRedirectUrl ?? '') !== '';
+
+        return $hasTemplate && $hasRedirect;
+    }
+
     private static function defaults(): object
     {
         return (object) [
             'apiKey' => '',
+            'newsletterEnabled' => false,
+            'listId' => 0,
+            'doiTemplateId' => 0,
+            'doiRedirectUrl' => '',
         ];
     }
 }

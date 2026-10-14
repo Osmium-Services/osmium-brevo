@@ -1,8 +1,8 @@
 {
     "id": "brevo",
     "name": "Brevo",
-    "version": "1.1.0",
-    "description": "Send site email through Brevo's HTTP API - a generous free plan, and useful where hosting blocks outbound SMTP. Appears as a provider on the Email settings page.",
+    "version": "1.2.0",
+    "description": "Send site email through Brevo's HTTP API, and add newsletter signups to a Brevo list. A generous free plan, and useful where hosting blocks outbound SMTP. Appears as a provider on the Email settings page.",
     "category": "email",
     "author": {
         "name": "Gavin Cox"
@@ -49,7 +49,13 @@
         ]
     },
 
+    "api": {
+        "routes": {
+            "api/brevo-newsletter": "controllers/newsletter.php"
+        }
+    },
+
     "setup": {
-        "postInstallNote": "Enter a Brevo API key on the Brevo settings page, and make sure the From address on Settings > Email is a verified sender in Brevo. Then choose Brevo as the Provider on Settings > Email and use Send test email."
+        "postInstallNote": "Enter a Brevo API key on the Brevo settings page, and make sure the From address on Settings > Email is a verified sender in Brevo. Then choose Brevo as the Provider on Settings > Email and use Send test email. For newsletter signups, set the List ID on the Brevo settings page, switch signups on, and point the theme form (fields email, consent tick box, token and the zip honeypot) at /api/brevo-newsletter/. The visitor returns with ?newsletter=subscribed, invalid, no_consent or failed. Optional double opt-in: add a confirmation template ID and a thank-you page address, and the result becomes ?newsletter=confirm."
     }
 }

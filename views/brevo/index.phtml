@@ -44,6 +44,57 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bx bx-news me-2"></i>Newsletter signup</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Adds visitors who tick the opt-in box to a Brevo list. Point the theme's signup form at
+                        <code>/api/brevo-newsletter/</code> with the fields <code>email</code>, <code>consent</code>
+                        (a tick box), <code>token</code> and the hidden <code>zip</code> honeypot. The visitor comes back
+                        to the page they were on with <code>?newsletter=subscribed</code>, <code>invalid</code>,
+                        <code>no_consent</code> or <code>failed</code> (or <code>confirm</code> with double opt-in below). The list and the campaigns live in Brevo.
+                    </p>
+
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="newsletter_enabled" name="newsletter_enabled" value="1"
+                            <?= !empty($admin['config']['brevo']['newsletterEnabled']) ? 'checked' : '' ?>>
+                        <label class="form-check-label fw-semibold" for="newsletter_enabled">Take newsletter signups</label>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="list_id" class="form-label fw-semibold">List ID</label>
+                        <input type="number" min="0" class="form-control" id="list_id" name="list_id"
+                            value="<?= (int) ($admin['config']['brevo']['listId'] ?? 0) ?: '' ?>">
+                        <div class="form-text">The number shown for the list under Contacts &rsaquo; Lists in Brevo.</div>
+                    </div>
+
+                    <hr>
+                    <p class="text-muted">
+                        <strong>Double opt-in (optional).</strong> Fill in both to have Brevo email a confirmation link
+                        first; the visitor is only added to the list once they click it. Leave either blank to add
+                        them straight away.
+                    </p>
+
+                    <div class="mb-3">
+                        <label for="doi_template_id" class="form-label fw-semibold">Confirmation template ID</label>
+                        <input type="number" min="0" class="form-control" id="doi_template_id" name="doi_template_id"
+                            value="<?= (int) ($admin['config']['brevo']['doiTemplateId'] ?? 0) ?: '' ?>">
+                        <div class="form-text">An email template made in Brevo that contains the confirmation link
+                            (<code>{{ doubleoptin }}</code>). The ID is the number in the template's address.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="doi_redirect_url" class="form-label fw-semibold">Thank-you page address</label>
+                        <input type="url" class="form-control" id="doi_redirect_url" name="doi_redirect_url"
+                            placeholder="https://example.com/subscribed/"
+                            value="<?= \htmlspecialchars((string) ($admin['config']['brevo']['doiRedirectUrl'] ?? '')) ?>">
+                        <div class="form-text">Where the visitor lands after clicking the link in the email.</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </form>
