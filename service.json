@@ -1,9 +1,10 @@
 {
     "id": "brevo",
     "name": "Brevo",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "description": "Send site email through Brevo's HTTP API, and add newsletter signups to a Brevo list. A generous free plan, and useful where hosting blocks outbound SMTP. Appears as a provider on the Email settings page.",
     "category": "email",
+    "website": "https://www.brevo.com",
     "author": {
         "name": "Gavin Cox"
     },
