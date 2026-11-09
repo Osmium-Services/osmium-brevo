@@ -1,5 +1,9 @@
 <?php
 
+use Osmium\Core\Features\IpRateLimiter;
+use Osmium\Core\Library\ServiceHooks;
+use Osmium\Core\Library\ServiceLoader;
+use Osmium\Core\Models\ServiceModel;
 use Osmium\Services\Brevo\Models\BrevoConfig;
 use Osmium\Services\Brevo\Models\BrevoContacts;
 use Osmium\Services\Brevo\Models\NewsletterRequest;
@@ -41,7 +45,16 @@ $submittedTooFast = $secondsSinceTokenIssued < 4;
 
 unset($_SESSION['token'], $_SESSION['token_issued_at']); // One token, one submission
 
-$looksLikeABot = $botDetected || !$tokenIsValid || $submittedTooFast;
+// Any installed bot protection answers the form.verify hook; this service never names one
+$protectionAnswers = (new ServiceHooks(new ServiceLoader(new ServiceModel($this->osmium->dataSource))))
+    ->collect('form.verify', ['form' => 'newsletter', 'post' => $_POST, 'dataSource' => $this->osmium->dataSource]);
+$protectionFailed = \in_array(false, $protectionAnswers, true);
+
+// Each accepted attempt counts: 5 per 10 minutes per visitor, on top of core's general API limit
+$rateLimited = fn(): bool => (new IpRateLimiter(namespace: 'brevo-submit', maxAttempts: 5, windowSeconds: 600))
+    ->tooManyRequests($this->osmium->ipAddress->getVisitorIP($this->osmium->config->site->trustProxyHeaders ?? false));
+
+$looksLikeABot = $botDetected || !$tokenIsValid || $submittedTooFast || $protectionFailed || $rateLimited();
 if ($looksLikeABot) $back('failed');
 
 $request = NewsletterRequest::parse(['email' => $sg->get(type: 'POST', name: 'email'), 'consent' => $sg->get(type: 'POST', name: 'consent')]);
