@@ -1,6 +1,7 @@
 ---
 title: Send email and collect newsletter signups with Brevo
 tags: brevo, email, newsletter, signup, mailing list, list id, opt-in, mail provider
+page: admin/settings/brevo
 ---
 
 **Brevo** sends your site's email, and can add newsletter signups to a Brevo list.
